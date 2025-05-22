@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
+import { ControllerCube } from "./controllerCubes.js";
+import { ControllerRay } from "./controllerRay.js";
 
 let camera, scene, renderer;
 let controller1, controller2;
@@ -8,6 +10,10 @@ let controllerGrip1, controllerGrip2;
 let raycaster, intersected;
 let canvasPanel, canvasTexture, canvasContext;
 let isInVR = false;
+
+// Controller components
+let controllerCube1, controllerCube2;
+let controllerRay1, controllerRay2;
 
 init();
 animate();
@@ -81,7 +87,7 @@ function init() {
   // Controllers setup
   const controllerModelFactory = new XRControllerModelFactory();
 
-  // Controller 1
+  // Controller 1 (Left)
   controller1 = renderer.xr.getController(0);
   controller1.addEventListener("selectstart", onSelectStart);
   controller1.addEventListener("selectend", onSelectEnd);
@@ -97,7 +103,14 @@ function init() {
   }
   scene.add(controllerGrip1);
 
-  // Controller 2
+  // Add cube and ray to controller 1
+  controllerCube1 = new ControllerCube();
+  controller1.add(controllerCube1.getMesh());
+
+  controllerRay1 = new ControllerRay(true); // true for left controller
+  controllerCube1.getMesh().add(controllerRay1.getMesh());
+
+  // Controller 2 (Right)
   controller2 = renderer.xr.getController(1);
   controller2.addEventListener("selectstart", onSelectStart);
   controller2.addEventListener("selectend", onSelectEnd);
@@ -113,20 +126,12 @@ function init() {
   }
   scene.add(controllerGrip2);
 
-  // Visual ray line
-  const geometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(0, 0, -1),
-  ]);
-  const material = new THREE.LineBasicMaterial({
-    color: 0xffffff,
-  });
-  const line = new THREE.Line(geometry, material);
-  line.scale.z = 5;
-  line.name = "ray";
+  // Add cube and ray to controller 2
+  controllerCube2 = new ControllerCube();
+  controller2.add(controllerCube2.getMesh());
 
-  controller1.add(line.clone());
-  controller2.add(line.clone());
+  controllerRay2 = new ControllerRay(false); // false for right controller
+  controllerCube2.getMesh().add(controllerRay2.getMesh());
 
   // Add lights
   const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -134,9 +139,8 @@ function init() {
   scene.add(light);
   scene.add(new THREE.AmbientLight(0x666666));
 
-  // VR Button with session change listener
-  const vrButton = VRButton.createButton(renderer);
-  document.body.appendChild(vrButton);
+  // VR Button
+  document.body.appendChild(VRButton.createButton(renderer));
 
   // Listen for VR session start/end
   renderer.xr.addEventListener("sessionstart", () => {
@@ -159,22 +163,25 @@ function onWindowResize() {
 }
 
 function onSelectStart(event) {
-  if (!isInVR) return; // Only handle interactions in VR mode
+  if (!isInVR) return;
 
   const controller = event.target;
-  const intersections = getIntersections(controller);
 
+  // Change ray appearance for left controller
+  if (controller === controller1) {
+    controllerRay1.setActive(true);
+  }
+
+  const intersections = getIntersections(controller);
   if (intersections.length > 0) {
     const intersection = intersections[0];
-    // Handle interaction with the canvas panel
     console.log("Canvas panel clicked at:", intersection.point);
 
-    // Update canvas texture with interaction point
     const point = intersection.point;
     canvasContext.fillStyle = "#ff0000";
     canvasContext.beginPath();
     canvasContext.arc(
-      (point.x + 0.8) * (320 / 1.6), // Convert 3D coordinates to 2D canvas coordinates
+      (point.x + 0.8) * (320 / 1.6),
       (point.y + 0.45) * (180 / 0.9),
       5,
       0,
@@ -186,7 +193,14 @@ function onSelectStart(event) {
 }
 
 function onSelectEnd(event) {
-  // Handle selection end if needed
+  if (!isInVR) return;
+
+  const controller = event.target;
+
+  // Revert ray appearance for left controller
+  if (controller === controller1) {
+    controllerRay1.setActive(false);
+  }
 }
 
 function getIntersections(controller) {
@@ -217,11 +231,23 @@ function render() {
     if (intersections.length > 0) {
       if (!intersected) {
         intersected = intersections[0].object;
-        intersected.material.emissive = new THREE.Color(0x666666);
+        // Check if the material supports emissive property
+        if (intersected.material.type === "MeshPhongMaterial") {
+          intersected.material.emissive.setHex(0x666666);
+        } else {
+          // For materials that don't support emissive, we'll just change the color slightly
+          intersected.material.color.multiplyScalar(0.8);
+        }
       }
     } else {
       if (intersected) {
-        intersected.material.emissive = new THREE.Color(0x000000);
+        // Revert the material changes
+        if (intersected.material.type === "MeshPhongMaterial") {
+          intersected.material.emissive.setHex(0x000000);
+        } else {
+          // Revert the color change
+          intersected.material.color.multiplyScalar(1.25);
+        }
         intersected = null;
       }
     }
@@ -230,7 +256,13 @@ function render() {
     const intersections2 = getIntersections(controller2);
     if (intersections2.length > 0 && !intersected) {
       intersected = intersections2[0].object;
-      intersected.material.emissive = new THREE.Color(0x666666);
+      // Check if the material supports emissive property
+      if (intersected.material.type === "MeshPhongMaterial") {
+        intersected.material.emissive.setHex(0x666666);
+      } else {
+        // For materials that don't support emissive, we'll just change the color slightly
+        intersected.material.color.multiplyScalar(0.8);
+      }
     }
   }
 
