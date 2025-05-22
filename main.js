@@ -48,6 +48,9 @@ function init() {
   renderer.xr.enabled = true;
   document.body.appendChild(renderer.domElement);
 
+  // Initialize raycaster
+  raycaster = new THREE.Raycaster();
+
   // Create canvas texture
   const canvas = document.createElement("canvas");
   canvas.width = 320;
