@@ -75,6 +75,7 @@ function init() {
   canvasPanel.position.set(0, 1.6, -2); // Positioned 2 meters in front at eye level
   scene.add(canvasPanel);
   //Ra ndom comment
+  //Random comment 2
 
   // Controllers setup
   const controllerModelFactory = new XRControllerModelFactory();
