@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Auto detect text files and perform LF normalization
 * text=auto eol=lf
 
@@ -69,4 +70,77 @@ Dockerfile text
 *.eot binary
 *.otf binary
 *.woff binary
+=======
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Source code
+*.css text diff=css
+*.htm text diff=html
+*.html text diff=html
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+*.py text diff=python
+*.php text diff=php
+*.yml text
+*.yaml text
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+*.rst text
+LICENSE text
+
+# Docker
+*.dockerfile text
+Dockerfile text
+
+# Config files
+*.env text
+*.ini text
+*.cfg text
+*.conf text
+*.config text
+*.toml text
+
+# Graphics
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+*.eps binary
+
+# Scripts
+*.bash text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# RC files
+.*rc text
+
+# Git files
+.gitattributes text export-ignore
+.gitignore text export-ignore
+.gitkeep text export-ignore
+
+# Archives
+*.7z binary
+*.gz binary
+*.tar binary
+*.tgz binary
+*.zip binary
+
+# Font files
+*.ttf binary
+*.eot binary
+*.otf binary
+*.woff binary
+>>>>>>> 87c90c0baff07f54887f46aaa81c141c09a0bc4d
 *.woff2 binary 
